@@ -143,7 +143,8 @@ class GridMDP(MDP):
 
 
     def modify_state(self, indices, step):
-        y_to_change, x_to_change = indices
+        #y_to_change, x_to_change = indices
+        x_to_change, y_to_change = indices
         direction = randint(0, 1) * 2 - 1
         if self.r_min < self.reward[x_to_change, y_to_change] + direction * step < self.r_max:
             self.reward[x_to_change, y_to_change] += direction * step

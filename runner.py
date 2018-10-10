@@ -17,9 +17,11 @@ from functools import partial
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.gridspec as gridspec
-from modified_birl import *
-
-
+#from modified_birl import *
+import birl
+import mdp
+import utils
+import os
 def main():
     number_of_iterations = 10
 
@@ -75,23 +77,24 @@ def main():
 
 
 
-    expert_mdp = GridMDP(rewards,
+    expert_mdp = mdp.GridMDP(rewards,
                          terminals=[(9, 4)])
 
-    expert_trace = best_policy(expert_mdp, value_iteration(expert_mdp, 0.001))
+    expert_trace = mdp.best_policy(expert_mdp, mdp.value_iteration(expert_mdp, 0.001))
     print "Expert rewards:"
     expert_mdp.print_rewards()
     print "Expert policy:"
-    print_table(expert_mdp.to_arrows(expert_trace))
+    utils.print_table(expert_mdp.to_arrows(expert_trace))
     print "---------------"
 
     expert_trace.pop((0,1))
     expert_trace.pop((0,2))
     expert_trace.pop((0,3))
 
-    birl = ModifiedBIRL(expert_trace, expert_mdp.get_grid_size(), expert_mdp.terminals,
+
+    mybirl = birl.BIRL(expert_trace, expert_mdp.get_grid_size(), expert_mdp.terminals,
                 partial(calculate_error_sum, expert_mdp), birl_iteration=2, step_size=1.0)
-    run_multiple_birl(birl, expert_mdp, expert_trace, number_of_iterations)
+    run_multiple_birl(mybirl, expert_mdp, expert_trace, number_of_iterations)
 
 
 def plot_errors(policy_error, reward_error, directory_name, birl, i, expert_mdp, mdp):
@@ -131,20 +134,21 @@ def run_multiple_birl(birl, expert_mdp, expert_trace, number_of_iteration):
         print("Run :" + str(i))
         print_reward_comparison(mdp, pi, expert_mdp, expert_trace)
         print_error_sum(mdp, birl, expert_mdp)
+    print "something"
 
 
 def initialize_output_directory(birl):
     directory_name = 'outputs/iter' + str(birl.birl_iteration) + \
-                     '_stepsize' + str(birl.step_size) + '_no' + str(randint(0, 2 ** 30))
+                     '_stepsize' + str(birl.step_size) + '_no' + str(np.random.randint(0, 2 ** 30))
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
     return directory_name
 
 
 def print_reward_comparison(mdp, pi, expert_mdp, expert_trace):
-    print_table(mdp.to_arrows(pi))
+    utils.print_table(mdp.to_arrows(pi))
     print "vs"
-    print_table(mdp.to_arrows(expert_trace))
+    utils.print_table(mdp.to_arrows(expert_trace))
     print("Policy difference is " + str(get_policy_difference(pi, expert_trace)))
     mdp.print_rewards()
     print "vs"
